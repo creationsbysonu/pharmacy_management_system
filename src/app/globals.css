@@ -1,0 +1,587 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+@custom-variant dark (&:is(.dark *));
+
+/* UI utility variants formerly pulled in via the shadcn CLI package. */
+@custom-variant data-open {
+  &:where([data-state="open"]), &:where([data-open]:not([data-open="false"])) { @slot; }
+}
+@custom-variant data-closed {
+  &:where([data-state="closed"]), &:where([data-closed]:not([data-closed="false"])) { @slot; }
+}
+@custom-variant data-checked {
+  &:where([data-state="checked"]), &:where([data-checked]:not([data-checked="false"])) { @slot; }
+}
+@custom-variant data-unchecked {
+  &:where([data-state="unchecked"]), &:where([data-unchecked]:not([data-unchecked="false"])) { @slot; }
+}
+@custom-variant data-selected {
+  &:where([data-selected="true"]) { @slot; }
+}
+@custom-variant data-disabled {
+  &:where([data-disabled="true"]), &:where([data-disabled]:not([data-disabled="false"])) { @slot; }
+}
+@custom-variant data-active {
+  &:where([data-state="active"]), &:where([data-active]:not([data-active="false"])) { @slot; }
+}
+@custom-variant data-horizontal {
+  &:where([data-orientation="horizontal"]) { @slot; }
+}
+@custom-variant data-vertical {
+  &:where([data-orientation="vertical"]) { @slot; }
+}
+
+@utility no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+  &::-webkit-scrollbar { display: none; }
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+  --font-heading: var(--font-sora);
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-sidebar-ring: var(--sidebar-ring);
+  --color-sidebar-border: var(--sidebar-border);
+  --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
+  --color-sidebar-accent: var(--sidebar-accent);
+  --color-sidebar-primary-foreground: var(--sidebar-primary-foreground);
+  --color-sidebar-primary: var(--sidebar-primary);
+  --color-sidebar-foreground: var(--sidebar-foreground);
+  --color-sidebar: var(--sidebar);
+  --color-chart-5: var(--chart-5);
+  --color-chart-4: var(--chart-4);
+  --color-chart-3: var(--chart-3);
+  --color-chart-2: var(--chart-2);
+  --color-chart-1: var(--chart-1);
+  --color-ring: var(--ring);
+  --color-input: var(--input);
+  --color-border: var(--border);
+  --color-destructive: var(--destructive);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-accent: var(--accent);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-muted: var(--muted);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-secondary: var(--secondary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-primary: var(--primary);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-popover: var(--popover);
+  --color-card-foreground: var(--card-foreground);
+  --color-card: var(--card);
+  --radius-sm: calc(var(--radius) * 0.6);
+  --radius-md: calc(var(--radius) * 0.8);
+  --radius-lg: var(--radius);
+  --radius-xl: calc(var(--radius) * 1.4);
+  --radius-2xl: calc(var(--radius) * 1.8);
+  --radius-3xl: calc(var(--radius) * 2.2);
+  --radius-4xl: calc(var(--radius) * 2.6);
+}
+
+/* ---------------------------------------------------------------------------
+   Day and night.
+
+   `:root` is the daylight theme — warm paper, deep green ink, the same emerald
+   and lime accents. `.dark` is the original deep-ink night theme. Both are the
+   product's own palette, so switching never feels like a different brand: only
+   the paper changes. next-themes toggles the `dark` class on <html>.
+   --------------------------------------------------------------------------- */
+:root {
+  color-scheme: light;
+  --background: oklch(0.985 0.004 245);
+  --foreground: oklch(0.235 0.02 250);
+  --scrollbar-track: oklch(0.95 0.006 245);
+  --scrollbar-thumb: oklch(0.8 0.012 250);
+
+  --card: oklch(1 0 0);
+  --card-foreground: oklch(0.235 0.02 250);
+  --popover: oklch(1 0 0);
+  --popover-foreground: oklch(0.235 0.02 250);
+
+  --primary: oklch(0.52 0.13 158);
+  --primary-foreground: oklch(0.99 0.005 150);
+  --secondary: oklch(0.955 0.008 245);
+  --secondary-foreground: oklch(0.28 0.02 250);
+  --muted: oklch(0.96 0.006 245);
+  --muted-foreground: oklch(0.5 0.02 250);
+  --accent: oklch(0.63 0.14 132);
+  --accent-foreground: oklch(0.99 0.01 120);
+
+  --destructive: oklch(0.55 0.2 25);
+  --border: oklch(0.25 0.03 250 / 13%);
+  --input: oklch(0.25 0.03 250 / 18%);
+  --ring: oklch(0.52 0.13 158);
+  --success: oklch(0.52 0.13 158);
+  --warning: oklch(0.62 0.14 70);
+
+  --chart-1: oklch(0.55 0.13 158);
+  --chart-2: oklch(0.55 0.1 200);
+  --chart-3: oklch(0.66 0.15 125);
+  --chart-4: oklch(0.52 0.16 292);
+  --chart-5: oklch(0.6 0.16 35);
+
+  --radius: 0.9rem;
+
+  --sidebar: oklch(0.99 0.003 245);
+  --sidebar-foreground: oklch(0.3 0.02 250);
+  --sidebar-primary: oklch(0.52 0.13 158);
+  --sidebar-primary-foreground: oklch(0.99 0.005 150);
+  --sidebar-accent: oklch(0.955 0.008 245);
+  --sidebar-accent-foreground: oklch(0.235 0.02 250);
+  --sidebar-border: oklch(0.25 0.03 250 / 10%);
+  --sidebar-ring: oklch(0.52 0.13 158);
+
+  --page-glow:
+    radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.72 0.13 158 / 0.1), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, oklch(0.7 0.1 196 / 0.07), transparent);
+}
+
+.dark {
+  color-scheme: dark;
+  --background: oklch(0.145 0.014 250);
+  --foreground: oklch(0.968 0.006 240);
+  --scrollbar-track: oklch(0.17 0.016 250);
+  --scrollbar-thumb: oklch(0.34 0.03 250);
+  --card: oklch(0.187 0.017 250);
+  --card-foreground: oklch(0.968 0.006 240);
+  --popover: oklch(0.2 0.018 250);
+  --popover-foreground: oklch(0.968 0.006 240);
+  --primary: oklch(0.78 0.16 158);
+  --primary-foreground: oklch(0.17 0.03 165);
+  --secondary: oklch(0.245 0.022 250);
+  --secondary-foreground: oklch(0.95 0.008 240);
+  --muted: oklch(0.225 0.018 250);
+  --muted-foreground: oklch(0.7 0.018 240);
+  --accent: oklch(0.87 0.18 118);
+  --accent-foreground: oklch(0.2 0.04 120);
+  --destructive: oklch(0.68 0.19 22);
+  --border: oklch(1 0 0 / 10%);
+  --input: oklch(1 0 0 / 13%);
+  --ring: oklch(0.78 0.16 158);
+  --success: oklch(0.79 0.16 158);
+  --warning: oklch(0.83 0.15 80);
+  --chart-1: oklch(0.78 0.16 158);
+  --chart-2: oklch(0.78 0.12 196);
+  --chart-3: oklch(0.87 0.18 118);
+  --chart-4: oklch(0.72 0.14 292);
+  --chart-5: oklch(0.72 0.16 26);
+  --sidebar: oklch(0.158 0.015 250);
+  --sidebar-foreground: oklch(0.94 0.008 240);
+  --sidebar-primary: oklch(0.78 0.16 158);
+  --sidebar-primary-foreground: oklch(0.17 0.03 165);
+  --sidebar-accent: oklch(0.225 0.02 250);
+  --sidebar-accent-foreground: oklch(0.97 0.008 240);
+  --sidebar-border: oklch(1 0 0 / 9%);
+  --sidebar-ring: oklch(0.78 0.16 158);
+
+  --page-glow:
+    radial-gradient(ellipse 80% 50% at 50% -10%, oklch(0.42 0.12 158 / 0.16), transparent),
+    radial-gradient(ellipse 60% 40% at 100% 0%, oklch(0.5 0.12 196 / 0.08), transparent);
+}
+
+@layer base {
+  * {
+    @apply border-border outline-ring/50;
+  }
+  body {
+    @apply bg-background text-foreground;
+    background-image: var(--page-glow);
+    background-repeat: no-repeat;
+    transition: background-color 320ms ease, color 320ms ease;
+  }
+  html {
+    @apply font-sans;
+    scroll-behavior: smooth;
+    scrollbar-color: var(--scrollbar-thumb) var(--scrollbar-track);
+    scrollbar-width: thin;
+  }
+  ::selection {
+    background: oklch(0.78 0.16 158 / 0.35);
+    color: var(--foreground);
+  }
+  :focus-visible {
+    outline: 2px solid var(--ring);
+    outline-offset: 3px;
+  }
+  h1, h2, h3, h4 {
+    letter-spacing: -0.02em;
+  }
+}
+
+/* ---------------------------------------------------------------------------
+   Surfaces
+   --------------------------------------------------------------------------- */
+.landing-hero {
+  background:
+    radial-gradient(ellipse at 78% 34%, oklch(0.78 0.12 160 / 0.22), transparent 36rem),
+    radial-gradient(ellipse at 12% 8%, oklch(0.86 0.13 118 / 0.18), transparent 32rem),
+    radial-gradient(ellipse at 50% 120%, oklch(0.8 0.1 195 / 0.16), transparent 40rem),
+    linear-gradient(180deg, oklch(0.99 0.004 245), oklch(0.965 0.006 245));
+}
+
+.dark .landing-hero {
+  background:
+    radial-gradient(ellipse at 78% 34%, oklch(0.6 0.19 160 / 0.22), transparent 36rem),
+    radial-gradient(ellipse at 12% 8%, oklch(0.82 0.19 118 / 0.09), transparent 32rem),
+    radial-gradient(ellipse at 50% 120%, oklch(0.55 0.16 195 / 0.12), transparent 40rem),
+    linear-gradient(180deg, oklch(0.135 0.014 250), oklch(0.155 0.016 250));
+}
+
+.inventory-showcase {
+  background:
+    radial-gradient(ellipse at 15% 40%, oklch(0.78 0.12 158 / 0.18), transparent 34rem),
+    linear-gradient(180deg, oklch(0.99 0.004 245), oklch(0.97 0.006 245));
+}
+
+.dark .inventory-showcase {
+  background:
+    radial-gradient(ellipse at 15% 40%, oklch(0.55 0.16 158 / 0.16), transparent 34rem),
+    linear-gradient(180deg, oklch(0.15 0.015 250), oklch(0.17 0.016 250));
+}
+
+.hero-grain {
+  opacity: 0.35;
+  background-image: radial-gradient(oklch(0.3 0.02 250 / 0.18) 0.6px, transparent 0.6px);
+  background-size: 7px 7px;
+  mask-image: linear-gradient(90deg, black, transparent 75%);
+}
+
+.dark .hero-grain {
+  opacity: 0.22;
+  background-image: radial-gradient(oklch(0.9 0.02 240 / 0.16) 0.6px, transparent 0.6px);
+}
+
+.surface-grid {
+  background-image:
+    linear-gradient(to right, oklch(0.25 0.02 250 / 0.07) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(0.25 0.02 250 / 0.07) 1px, transparent 1px);
+  background-size: 56px 56px;
+  mask-image: radial-gradient(ellipse at 50% 0%, black, transparent 74%);
+}
+
+.dark .surface-grid {
+  background-image:
+    linear-gradient(to right, oklch(1 0 0 / 0.055) 1px, transparent 1px),
+    linear-gradient(to bottom, oklch(1 0 0 / 0.055) 1px, transparent 1px);
+}
+
+/* Slow-moving aurora behind the hero. Two layers, opposite directions, so it
+   never looks like a repeating GIF. */
+.aurora {
+  position: absolute;
+  inset: -20%;
+  pointer-events: none;
+  background:
+    radial-gradient(closest-side at 30% 40%, oklch(0.78 0.14 158 / 0.2), transparent),
+    radial-gradient(closest-side at 70% 55%, oklch(0.86 0.16 118 / 0.18), transparent),
+    radial-gradient(closest-side at 55% 20%, oklch(0.74 0.12 196 / 0.16), transparent);
+  filter: blur(60px);
+  animation: aurora-drift 26s ease-in-out infinite alternate;
+}
+
+.dark .aurora {
+  background:
+    radial-gradient(closest-side at 30% 40%, oklch(0.72 0.19 158 / 0.22), transparent),
+    radial-gradient(closest-side at 70% 55%, oklch(0.85 0.2 118 / 0.16), transparent),
+    radial-gradient(closest-side at 55% 20%, oklch(0.7 0.16 196 / 0.18), transparent);
+}
+
+@keyframes aurora-drift {
+  0% { transform: translate3d(-3%, -2%, 0) scale(1); }
+  50% { transform: translate3d(2%, 3%, 0) scale(1.08); }
+  100% { transform: translate3d(4%, -3%, 0) scale(1.03); }
+}
+
+/* Faint top hairline used to separate marketing sections without a hard rule. */
+.section-rule {
+  height: 1px;
+  background: linear-gradient(90deg, transparent, oklch(0.25 0.02 250 / 0.16), transparent);
+}
+
+.dark .section-rule {
+  background: linear-gradient(90deg, transparent, oklch(1 0 0 / 0.14), transparent);
+}
+
+.glass {
+  background: color-mix(in oklab, var(--card) 72%, transparent);
+  backdrop-filter: blur(18px) saturate(1.15);
+}
+
+.glass-strong {
+  background: color-mix(in oklab, var(--card) 88%, transparent);
+  backdrop-filter: blur(26px) saturate(1.2);
+}
+
+.glow-line {
+  box-shadow:
+    0 0 0 1px oklch(0.78 0.16 158 / 0.22),
+    0 0 42px -12px oklch(0.78 0.16 158 / 0.4);
+}
+
+.text-gradient {
+  background: linear-gradient(100deg, var(--primary), var(--chart-2) 45%, var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.card-lift {
+  transition:
+    transform 300ms cubic-bezier(0.16, 0.8, 0.3, 1),
+    box-shadow 300ms ease,
+    border-color 300ms ease,
+    background-color 300ms ease;
+}
+
+.card-lift:hover {
+  transform: translateY(-3px);
+  border-color: oklch(0.52 0.13 158 / 0.35);
+  box-shadow:
+    0 18px 40px -30px oklch(0.3 0.03 250 / 0.45),
+    0 0 0 1px oklch(0.52 0.13 158 / 0.14);
+}
+
+.dark .card-lift:hover {
+  border-color: oklch(0.78 0.16 158 / 0.32);
+  box-shadow:
+    0 24px 60px -32px oklch(0 0 0 / 0.9),
+    0 0 0 1px oklch(0.78 0.16 158 / 0.12);
+}
+
+.marquee-track {
+  animation: marquee 42s linear infinite;
+}
+
+@keyframes marquee {
+  0% { transform: translate3d(0, 0, 0); }
+  100% { transform: translate3d(-50%, 0, 0); }
+}
+
+/* ---------------------------------------------------------------------------
+   Slot machine text: each character sits in a clipped rail and rolls up into
+   place. Driven purely by CSS custom properties so it animates on mount even
+   with no JS, and stops dead under reduced motion.
+   --------------------------------------------------------------------------- */
+.slot {
+  display: inline-flex;
+  overflow: hidden;
+  vertical-align: bottom;
+  line-height: 1.05;
+  height: 1.05em;
+}
+
+.slot-char {
+  display: inline-block;
+  white-space: pre;
+  transform: translateY(calc(-1 * var(--slot-travel, 1.05em) * var(--slot-rolls, 4)));
+  animation: slot-land 1100ms cubic-bezier(0.16, 0.9, 0.25, 1) forwards;
+  animation-delay: calc(var(--slot-index, 0) * 46ms);
+}
+
+@keyframes slot-land {
+  from {
+    transform: translateY(calc(-1 * var(--slot-travel, 1.05em) * var(--slot-rolls, 4)));
+    filter: blur(3px);
+    opacity: 0.2;
+  }
+  to {
+    transform: translateY(0);
+    filter: blur(0);
+    opacity: 1;
+  }
+}
+
+/* Numbers that tick over digit by digit. */
+.slot-digit {
+  display: inline-block;
+  min-width: 0.62em;
+  text-align: center;
+  animation: digit-in 520ms cubic-bezier(0.2, 0.9, 0.25, 1) both;
+  animation-delay: calc(var(--digit-index, 0) * 55ms);
+}
+
+@keyframes digit-in {
+  from { transform: translateY(-55%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+/* ---------------------------------------------------------------------------
+   Motion system
+   Reveal states are driven from JS (IntersectionObserver) so they work in every
+   browser; the scroll-driven rules below are a progressive enhancement.
+   --------------------------------------------------------------------------- */
+.reveal {
+  opacity: 1;
+  transition:
+    opacity 760ms cubic-bezier(0.16, 0.8, 0.3, 1),
+    transform 760ms cubic-bezier(0.16, 0.8, 0.3, 1);
+  transition-delay: var(--reveal-delay, 0ms);
+}
+
+.reveal[data-armed="true"] {
+  opacity: var(--reveal-ready, 0);
+  transform: translate3d(0, calc((1 - var(--reveal-ready, 0)) * 26px), 0);
+}
+
+.reveal[data-armed="true"][data-motion="left"] {
+  transform: translate3d(calc((1 - var(--reveal-ready, 0)) * -36px), 0, 0);
+}
+
+.reveal[data-armed="true"][data-motion="right"] {
+  transform: translate3d(calc((1 - var(--reveal-ready, 0)) * 36px), 0, 0);
+}
+
+.reveal[data-armed="true"][data-motion="scale"] {
+  transform: scale(calc(0.94 + var(--reveal-ready, 0) * 0.06));
+}
+
+@supports (animation-timeline: view()) {
+  @media (prefers-reduced-motion: no-preference) {
+    .scroll-rise {
+      animation: scroll-rise linear both;
+      animation-timeline: view();
+      animation-range: entry 4% cover 34%;
+    }
+
+    .scroll-fade {
+      animation: scroll-fade linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 28%;
+    }
+
+    .scroll-parallax {
+      animation: scroll-parallax linear both;
+      animation-timeline: view();
+      animation-range: cover 0% cover 100%;
+    }
+  }
+}
+
+@keyframes scroll-rise {
+  from { opacity: 0; transform: translateY(34px) scale(0.99); }
+  to { opacity: 1; transform: none; }
+}
+
+@keyframes scroll-fade {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes scroll-parallax {
+  from { transform: translate3d(0, 26px, 0) scale(0.985); }
+  to { transform: translate3d(0, -26px, 0) scale(1.015); }
+}
+
+/* Charts: paths draw themselves once, bars grow, without layout work. */
+.chart-line {
+  stroke-dasharray: var(--line-length, 2600);
+  stroke-dashoffset: var(--line-length, 2600);
+  animation: chart-draw 1400ms cubic-bezier(0.22, 0.75, 0.25, 1) forwards;
+}
+
+@keyframes chart-draw {
+  to { stroke-dashoffset: 0; }
+}
+
+.chart-area {
+  animation: chart-area-in 1100ms 220ms ease-out both;
+}
+
+@keyframes chart-area-in {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+.chart-bar {
+  transform-origin: bottom;
+  animation: chart-rise 820ms cubic-bezier(0.22, 0.75, 0.25, 1) both;
+  animation-delay: calc(var(--bar-index, 0) * 55ms);
+}
+
+@keyframes chart-rise {
+  from { transform: scaleY(0.06); opacity: 0.2; }
+  to { transform: scaleY(1); opacity: 1; }
+}
+
+.chart-point {
+  animation: chart-point-in 320ms ease-out both;
+  animation-delay: calc(700ms + var(--point-index, 0) * 45ms);
+}
+
+@keyframes chart-point-in {
+  from { opacity: 0; transform: scale(0.4); }
+  to { opacity: 1; transform: none; }
+}
+
+.chart-donut {
+  animation: donut-sweep 1100ms cubic-bezier(0.22, 0.75, 0.25, 1) both;
+  transform-origin: center;
+}
+
+@keyframes donut-sweep {
+  from { opacity: 0; transform: rotate(-24deg) scale(0.9); }
+  to { opacity: 1; transform: none; }
+}
+
+/* Numerals align in tables and KPI rows. */
+.font-heading {
+  font-family: var(--font-heading);
+  font-feature-settings: "ss01" 1;
+}
+
+.numeric {
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.01em;
+}
+
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--scrollbar-thumb);
+  border-radius: 999px;
+  border: 2px solid var(--scrollbar-track);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: oklch(0.44 0.04 250);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal,
+  .reveal[data-armed="true"],
+  .reveal[data-motion] {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
+  .chart-line,
+  .chart-area,
+  .chart-bar,
+  .chart-point,
+  .chart-donut,
+  .scroll-rise,
+  .scroll-fade,
+  .scroll-parallax,
+  .aurora,
+  .marquee-track,
+  .slot-char,
+  .slot-digit {
+    animation: none !important;
+    stroke-dashoffset: 0;
+    opacity: 1;
+    transform: none;
+    filter: none;
+  }
+}
