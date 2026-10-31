@@ -29,6 +29,12 @@ export interface Access {
   readOnly: boolean;
   /** Set by the platform operator. A suspended workspace cannot be entered. */
   suspended: boolean;
+  /**
+   * The organization was never described — a Google sign-up or a blank sign-up
+   * form both leave it this way. An administrator must finish /organization
+   * first; see lib/route-rules.ts.
+   */
+  needsSetup: boolean;
 }
 
 /**
@@ -67,6 +73,43 @@ interface WorkspaceRef {
   plan: Plan;
   status: string;
   trial_ends_at: string | null;
+  email?: string | null;
+  phone?: string | null;
+  address?: string | null;
+}
+
+/**
+ * True when the workspace still carries the name the provisioning trigger
+ * leaves behind and not a single contact detail the owner actually typed.
+ *
+ * The provisioning trigger copies the signup address into `workspaces.email`,
+ * so a Google account arrives with "an email on file" without anyone having
+ * described anything — counting that would make the /organization hold dead
+ * code. An address identical to the sign-in therefore does not count; a
+ * different address, a phone number or an address does.
+ *
+ * Deliberately escapable: a pharmacy genuinely called "My pharmacy" passes the
+ * moment it records a phone number, address or its own contact email, so
+ * nobody can ever be trapped by this check.
+ */
+function lacksOrganization(
+  workspace: {
+    name?: string | null;
+    email?: string | null;
+    phone?: string | null;
+    address?: string | null;
+  },
+  ownerEmail: string | null,
+): boolean {
+  const name = (workspace.name ?? "").trim();
+  const placeholder = name === "" || /^my\s*pharmacy$/i.test(name);
+  if (!placeholder) return false;
+  if (workspace.phone?.trim() || workspace.address?.trim()) return false;
+
+  const email = (workspace.email ?? "").trim();
+  if (!email) return true;
+  // The copied login address is not contact details anybody entered.
+  return email.toLowerCase() === (ownerEmail ?? "").toLowerCase();
 }
 
 /** The signed-in account's workspace, role, plan and trial state. */
@@ -78,26 +121,38 @@ export const getAccess = cache(async (): Promise<Access | null> => {
 
   // The profile and the membership do not depend on each other, so fetch them
   // together instead of paying for two sequential round trips.
-  const [profile, { data: memberships }] = await Promise.all([
+  const [profile, { data: memberships, error: membershipError }] = await Promise.all([
     getProfile(),
     supabase
       .from("workspace_members")
-      .select("workspace_id, created_at, workspaces ( id, name, plan, status, trial_ends_at )")
+      .select(
+        "workspace_id, created_at, workspaces ( id, name, plan, status, trial_ends_at, email, phone, address )",
+      )
       .eq("user_id", user.id)
       .order("created_at", { ascending: true })
       .limit(1),
   ]);
 
+  // The contact columns arrive with migration 0006. On a database that has not
+  // run it yet, fall back to the name alone instead of failing every page.
+  const membershipResult = membershipError
+    ? await supabase
+        .from("workspace_members")
+        .select("workspace_id, created_at, workspaces ( id, name, plan, status, trial_ends_at )")
+        .eq("user_id", user.id)
+        .order("created_at", { ascending: true })
+        .limit(1)
+    : { data: memberships, error: null };
+
   if (!profile) return null;
 
-  const row = memberships?.[0] as
+  const row = membershipResult.data?.[0] as
     | { workspace_id: string; workspaces: WorkspaceRef | WorkspaceRef[] | null }
     | undefined;
 
   const embedded = row?.workspaces ?? null;
   const workspace = Array.isArray(embedded) ? embedded[0] : embedded;
   if (!row || !workspace) return null;
-
   const ends = workspace.trial_ends_at ? Date.parse(workspace.trial_ends_at) : null;
   const daysLeft = ends === null ? null : Math.max(0, Math.ceil((ends - Date.now()) / 86_400_000));
 
@@ -111,6 +166,7 @@ export const getAccess = cache(async (): Promise<Access | null> => {
     daysLeft,
     readOnly: workspace.plan === "trial" && ends !== null && ends < Date.now(),
     suspended: workspace.status !== "active",
+    needsSetup: lacksOrganization(workspace, user.email),
   };
 });
 
@@ -131,6 +187,7 @@ export const getGate = cache(async (): Promise<Gate> => {
     hasWorkspace: Boolean(access),
     suspended: access?.suspended ?? false,
     role: profile?.role ?? null,
+    needsSetup: access?.needsSetup ?? false,
   };
 });
 

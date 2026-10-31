@@ -27,6 +27,13 @@ export interface Gate {
   /** The workspace is suspended by the platform operator. */
   suspended: boolean;
   role: Role | null;
+  /**
+   * The organization has never been described: no real name and no contact
+   * details at all. This is what a Google sign-up (or a blank sign-up form)
+   * produces, so an administrator in that state must finish /organization
+   * before the dashboard will open. Employees are never held by it.
+   */
+  needsSetup: boolean;
 }
 
 export const EMPTY_GATE: Gate = {
@@ -35,7 +42,13 @@ export const EMPTY_GATE: Gate = {
   hasWorkspace: false,
   suspended: false,
   role: null,
+  needsSetup: false,
 };
+
+/** An administrator who still owes us the organization details. */
+export function needsOrganization(gate: Pick<Gate, "role" | "needsSetup">): boolean {
+  return gate.needsSetup && gate.role === "admin";
+}
 
 /** Reachable without a session. Mirrors the proxy's allow-list. */
 export const PUBLIC_PATHS = [
@@ -70,7 +83,8 @@ export function homeForRole(role: Role | null): string {
  */
 export function entryHome(gate: Gate): string | null {
   if (!gate.signedIn || !gate.hasProfile || !gate.hasWorkspace) return null;
-  return gate.suspended ? "/suspended" : homeForRole(gate.role);
+  if (gate.suspended) return "/suspended";
+  return needsOrganization(gate) ? "/organization" : homeForRole(gate.role);
 }
 
 /** /login and /staff/login: a working session has no business here. */
@@ -99,7 +113,10 @@ export function noAccessTarget(gate: Gate): string | null {
 export function appTarget(gate: Gate): string | null {
   if (!gate.signedIn) return "/login";
   if (!gate.hasProfile || !gate.hasWorkspace) return "/no-access";
-  return gate.suspended ? "/suspended" : null;
+  if (gate.suspended) return "/suspended";
+  // The last hop before the dashboard, and never a loop: /organization answers
+  // this rule with `null` below instead of sending the session back to itself.
+  return needsOrganization(gate) ? "/organization" : null;
 }
 
 /** The proxy: only unauthenticated visitors are moved, and only off private paths. */
@@ -124,6 +141,11 @@ export function nextFor(pathname: string, gate: Gate): string | null {
     case "/staff/login":
     case "/verify-email":
       return entranceTarget(gate);
+    case "/organization":
+      if (!gate.hasProfile || !gate.hasWorkspace) return "/no-access";
+      if (gate.suspended) return "/suspended";
+      // Stay and render the form; everyone else goes home.
+      return needsOrganization(gate) ? null : homeForRole(gate.role);
     case "/signup":
       return signupTarget(gate);
     case "/no-access":
@@ -143,6 +165,7 @@ export const GUARDED_ROUTES = [
   "/staff/login",
   "/signup",
   "/verify-email",
+  "/organization",
   "/no-access",
   "/suspended",
   "/dashboard",

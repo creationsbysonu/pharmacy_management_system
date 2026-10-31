@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { requireAccess, requireWritable } from "@/lib/auth";
+import { TRIAL_DAYS, getAccess, requireAccess, requireWritable } from "@/lib/auth";
 import type { FormState } from "@/lib/actions/auth";
 import { createClient } from "@/lib/supabase/server";
 
@@ -30,6 +30,7 @@ function rpcMessage(message: string): string {
 function refresh() {
   revalidatePath("/settings");
   revalidatePath("/dashboard");
+  revalidatePath("/organization");
 }
 
 export async function updateProfile(
@@ -59,9 +60,21 @@ export async function updatePharmacy(
   _previous: FormState,
   formData: FormData,
 ): Promise<FormState> {
-  const access = await requireWritable("/settings");
+  // Deliberately not requireWritable("/settings"): this action also serves
+  // /organization, and `requireAccess` answers "where do you belong" with
+  // /organization for exactly this session — bouncing there from its own form
+  // would silently throw away what the person just typed. Every condition is
+  // checked here instead, with failures returned as messages that stay on screen.
+  const access = await getAccess();
+  if (!access) redirect("/no-access");
+  if (access.suspended) redirect("/suspended");
   if (access.profile.role !== "admin") {
     return { error: "Only an administrator can change the pharmacy profile." };
+  }
+  if (access.readOnly) {
+    return {
+      error: `Your ${TRIAL_DAYS}-day free trial has ended. Subscribe to save organization details again — nothing has been deleted.`,
+    };
   }
 
   const field = (key: string) => String(formData.get(key) ?? "").trim();

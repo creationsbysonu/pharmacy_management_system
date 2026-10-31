@@ -116,7 +116,7 @@ export async function addStaffMember(
   revalidatePath("/employees");
   return {
     message: invitedNow
-      ? `${fullName} can now sign in at /login with ${email} and the password you set.`
+      ? `${fullName} can now sign in at /staff/login with ${email} and the password you set.`
       : `${fullName} was attached to ${access.pharmacyName} as a pharmacist.`,
   };
 }

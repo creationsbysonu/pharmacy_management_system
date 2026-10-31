@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { redirect } from "next/navigation";
 import { AlertCircle, ShieldCheck } from "lucide-react";
-import { AuthProviders } from "@/components/auth-providers";
 import { AuthShell } from "@/components/auth-shell";
 import { LoginForm } from "@/components/login-form";
 import { getGate } from "@/lib/auth";
@@ -57,7 +56,9 @@ export default async function StaffLoginPage({
     >
       <h2 className="font-heading text-xl font-semibold">Employee sign in</h2>
       <p className="mt-1 mb-6 text-sm text-muted-foreground">
-        Use the work email your pharmacy registered for you.
+        Use the work email your pharmacy registered for you — with the temporary
+        password your administrator set. Logins here are issued by the pharmacy,
+        not by Google.
       </p>
 
       {error ? (
@@ -66,8 +67,6 @@ export default async function StaffLoginPage({
           <span>{decodeURIComponent(error)}</span>
         </p>
       ) : null}
-
-      <AuthProviders next={next ?? "/pos"} />
 
       <LoginForm nextPath={next ?? "/pos"} portal="staff" submitLabel="Open the counter" />
     </AuthShell>

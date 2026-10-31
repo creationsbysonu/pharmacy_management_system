@@ -24,6 +24,7 @@ function states() {
       hasWorkspace: false,
       suspended: false,
       role: null,
+      needsSetup: false,
     },
   ];
   for (const hasProfile of [false, true]) {
@@ -32,14 +33,18 @@ function states() {
       if (hasWorkspace && !hasProfile) continue;
       for (const suspended of hasWorkspace ? [false, true] : [false]) {
         for (const role of hasProfile ? ["admin", "pharmacist"] : [null]) {
-          list.push({
-            label: `profile=${hasProfile} workspace=${hasWorkspace} suspended=${suspended} role=${role}`,
-            signedIn: true,
-            hasProfile,
-            hasWorkspace,
-            suspended,
-            role,
-          });
+          // A workspace that has never been described, or a complete one.
+          for (const needsSetup of hasWorkspace ? [false, true] : [false]) {
+            list.push({
+              label: `profile=${hasProfile} workspace=${hasWorkspace} suspended=${suspended} role=${role} needsSetup=${needsSetup}`,
+              signedIn: true,
+              hasProfile,
+              hasWorkspace,
+              suspended,
+              role,
+              needsSetup,
+            });
+          }
         }
       }
     }
@@ -160,6 +165,7 @@ test("anonymous visitors are moved to the door exactly once", () => {
     hasWorkspace: false,
     suspended: false,
     role: null,
+    needsSetup: false,
   };
 
   for (const route of ["/dashboard", "/pos", "/no-access"]) {
@@ -168,4 +174,39 @@ test("anonymous visitors are moved to the door exactly once", () => {
   assert.equal(nextFor("/login", anon), null);
   assert.equal(nextFor("/", anon), null);
   assert.equal(nextFor("/pricing", anon), null);
+});
+
+test("an administrator who never described the organization is held at /organization", () => {
+  const blank = {
+    label: "google sign-up",
+    signedIn: true,
+    hasProfile: true,
+    hasWorkspace: true,
+    suspended: false,
+    role: "admin",
+    needsSetup: true,
+  };
+
+  // Nothing private opens before the details exist…
+  assert.equal(nextFor("/dashboard", blank), "/organization");
+  assert.equal(nextFor("/pos", blank), "/organization");
+  assert.equal(nextFor("/login", blank), "/organization");
+  assert.equal(nextFor("/verify-email", blank), "/organization");
+  // …and the page itself renders instead of bouncing to itself.
+  assert.equal(nextFor("/organization", blank), null);
+
+  // The form's own states are not held: employees, suspended workspaces and
+  // the no-membership case each keep their existing destination.
+  assert.equal(nextFor("/organization", { ...blank, role: "pharmacist" }), "/pos");
+  assert.equal(nextFor("/organization", { ...blank, suspended: true }), "/suspended");
+  assert.equal(
+    nextFor("/organization", { ...blank, hasWorkspace: false }),
+    "/no-access",
+  );
+  // A workspace that describes itself is never held.
+  assert.equal(
+    nextFor("/organization", { ...blank, needsSetup: false }),
+    "/dashboard",
+  );
+  assert.equal(nextFor("/dashboard", { ...blank, needsSetup: false }), null);
 });

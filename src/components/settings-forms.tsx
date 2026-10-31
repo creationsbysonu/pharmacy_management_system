@@ -259,6 +259,21 @@ export function StaffForm() {
           Share it with them over a secure channel; they can change it from their own settings.
         </p>
       </div>
+      <div className="space-y-2">
+        <Label htmlFor="staff_employee_id">Employee ID (optional)</Label>
+        <Input
+          id="staff_employee_id"
+          name="employee_id"
+          inputMode="numeric"
+          pattern="[0-9]*"
+          placeholder="e.g. 12"
+        />
+        <p className="text-xs text-muted-foreground">
+          Links this login to their record in the employee register, so the roster
+          shows who can sign in. Add the record first under Employees if it does
+          not exist yet.
+        </p>
+      </div>
       <Feedback state={state} />
       <Button type="submit" disabled={pending}>
         <UserPlus />
